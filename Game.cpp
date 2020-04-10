@@ -24,12 +24,13 @@ void Game::run() {
 				quit = true;
 			}
 		}
+		renderer->clear();
 		renderer->update();
+		renderer->present();
 	}
 }
 
 void Game::close() {
-	renderer->close();
 	delete(renderer);
-	renderer = NULL;
+	renderer = nullptr;
 }
