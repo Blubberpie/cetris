@@ -11,24 +11,30 @@ Renderer::~Renderer() {
 
 bool Renderer::initialize(string title, int width, int height) {
 	bool success = true;
-	sdlWindow = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
-	if (sdlWindow == NULL) { 
-		success = false; 
-		cout << "SDL could not create window! " << SDL_GetError();
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		success = false;
+		cout << "SDL could not initialize! " << SDL_GetError();
 	}
 	else {
-		// Use hardware acceleration
-		sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
-		if (sdlRenderer == NULL) {
+		sdlWindow = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+		if (sdlWindow == NULL) {
 			success = false;
-			cout << "SDL could not create renderer! " << SDL_GetError();
+			cout << "SDL could not create window! " << SDL_GetError();
 		}
 		else {
-			SDL_SetRenderDrawColor(sdlRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-			int imgFlags = IMG_INIT_PNG;
-			if (!(IMG_Init(imgFlags) & imgFlags)) {
+			// Use hardware acceleration
+			sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
+			if (sdlRenderer == NULL) {
 				success = false;
-				cout << "SDL_image could not initialize! " << IMG_GetError();
+				cout << "SDL could not create renderer! " << SDL_GetError();
+			}
+			else {
+				SDL_SetRenderDrawColor(sdlRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+				int imgFlags = IMG_INIT_PNG;
+				if (!(IMG_Init(imgFlags) & imgFlags)) {
+					success = false;
+					cout << "SDL_image could not initialize! " << IMG_GetError();
+				}
 			}
 		}
 	}
@@ -78,13 +84,11 @@ void Renderer::clear() {
 
 void Renderer::update() {
 	backgroundTexture->render(sdlRenderer, 0, 0);
-	tetrominoTexture->render(sdlRenderer, 0, 0, &tetrominoSpriteClips[TETROMINO_I]);
-	tetrominoTexture->render(sdlRenderer, TILE_RENDER_SIZE, 0, &tetrominoSpriteClips[TETROMINO_O]);
-	tetrominoTexture->render(sdlRenderer, TILE_RENDER_SIZE * 2, 0, &tetrominoSpriteClips[TETROMINO_T]);
-	tetrominoTexture->render(sdlRenderer, TILE_RENDER_SIZE * 3, 0, &tetrominoSpriteClips[TETROMINO_S]);
-	tetrominoTexture->render(sdlRenderer, TILE_RENDER_SIZE * 4, 0, &tetrominoSpriteClips[TETROMINO_Z]);
-	tetrominoTexture->render(sdlRenderer, TILE_RENDER_SIZE * 5, 0, &tetrominoSpriteClips[TETROMINO_J]);
-	tetrominoTexture->render(sdlRenderer, TILE_RENDER_SIZE * 6, 0, &tetrominoSpriteClips[TETROMINO_L]);
+	for (int i = 0; i < 10; i++) {
+		for (int j = 0; j < 20; j++) {
+			tetrominoTexture->render(sdlRenderer, (i * TILE_RENDER_SIZE) + BOARD_START_X, (j * TILE_RENDER_SIZE) + BOARD_START_Y, &tetrominoSpriteClips[TETROMINO_I]);
+		}
+	}
 }
 
 void Renderer::present() {
