@@ -14,21 +14,36 @@ bool Game::initialize() {
 }
 
 void Game::run() {
-	srand(time(nullptr));
+	srand((unsigned int)time(nullptr));
 	bool quit = false;
 	SDL_Event event;
 	checkAndGenerateTetrominoSet();
 	checkAndRefillTetrominoQueue();
 	spawn();
-	printBoard();
 	while (!quit) {
 		while (SDL_PollEvent(&event) != 0) {
 			if (event.type == SDL_QUIT) {
 				quit = true;
 			}
 			else if(event.type == SDL_KEYDOWN){
-				if (event.key.keysym.sym == SDLK_DOWN) {
-					tick();
+				switch(event.key.keysym.sym) {
+				case SDLK_w:
+					break;
+				case SDLK_a:
+					move(LEFT);
+					break;
+				case SDLK_s:
+					move(DOWN);
+					break;
+				case SDLK_d:
+					move(RIGHT);
+					break;
+				case SDLK_DOWN:
+					break;
+				case SDLK_RIGHT:
+					break;
+				case SDLK_q:
+					break;
 				}
 			}
 		}
@@ -103,8 +118,8 @@ void Game::spawn() {
 void Game::writeToBoard(vector<vector<int>> tetromino, bool clear) {
 	int newRow, newCol;
 	if (clear) {
-		for (int row = 0; row < tetromino.size(); row++) {
-			for (int col = 0; col < tetromino[0].size(); col++) {
+		for (size_t row = 0; row < tetromino.size(); row++) {
+			for (size_t col = 0; col < tetromino[0].size(); col++) {
 				newRow = currentTetromino.row + row;
 				newCol = currentTetromino.col + col;
 				if (gameBoard[newRow][newCol] - tetromino[row][col] == 0) {
@@ -114,8 +129,8 @@ void Game::writeToBoard(vector<vector<int>> tetromino, bool clear) {
 		}
 	}
 	else {
-		for (int row = 0; row < tetromino.size(); row++) {
-			for (int col = 0; col < tetromino[0].size(); col++) {
+		for (size_t row = 0; row < tetromino.size(); row++) {
+			for (size_t col = 0; col < tetromino[0].size(); col++) {
 				newRow = currentTetromino.row + row;
 				newCol = currentTetromino.col + col;
 				if (tetromino[row][col] != 0) {
@@ -127,32 +142,53 @@ void Game::writeToBoard(vector<vector<int>> tetromino, bool clear) {
 }
 
 void Game::tick() {
+	
+}
+
+void Game::move(int direction) {
 	writeToBoard(currentTetromino.mTetromino, true);
-	if (!willOverlap()) {
-		currentTetromino.row++;
+	if (!willCollide(direction)) {
+		switch (direction) {
+		case DOWN:
+			currentTetromino.row++;
+			break;
+		case LEFT:
+			currentTetromino.col--;
+			break;
+		case RIGHT:
+			currentTetromino.col++;
+			break;
+		default:
+			break;
+		}
 		writeToBoard(currentTetromino.mTetromino);
 	}
 	else {
 		writeToBoard(currentTetromino.mTetromino);
-		spawn();
+		if (direction == DOWN) { spawn(); }
 	}
 }
 
-bool Game::willOverlap() {
+bool Game::willCollide(int direction) {
 	int newRow, newCol;
-	for (int row = currentTetromino.mTetromino.size() - 1; row >= 0; row--) {
-		for (int col = currentTetromino.mTetromino[0].size() - 1; col >= 0; col--) {
-			newRow = currentTetromino.row + row + 1;
+	for (int row = 0; row < currentTetromino.mTetromino.size(); row++) {
+		for (int col = 0; col < currentTetromino.mTetromino[0].size(); col++) {
+			newRow = currentTetromino.row + row;
 			newCol = currentTetromino.col + col;
+			switch (direction) {
+			case DOWN:
+				newRow++;
+				break;
+			case RIGHT:
+				newCol++;
+				break;
+			case LEFT:
+				newCol--;
+				break;
+			}
 			if (currentTetromino.mTetromino[row][col] != 0) {
-				if (newRow >= NUM_ROWS) { 
-					cout << "out of range!\n";
-					return true; 
-				}
-				if (currentTetromino.mTetromino[row][col] - gameBoard[newRow][newCol] != currentTetromino.mTetromino[row][col]) {
-					cout << newRow << " " << newCol << endl;
-					return true;
-				}
+				if (newRow >= NUM_ROWS || newCol >= NUM_COLS || newCol < 0) { return true; } // Out of bounds
+				if (currentTetromino.mTetromino[row][col] - gameBoard[newRow][newCol] != currentTetromino.mTetromino[row][col]) { return true; }
 			}
 		}
 	}

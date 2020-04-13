@@ -26,6 +26,12 @@ private:
 		void reset();
 	} currentTetromino;
 
+	enum Direction {
+		DOWN,
+		LEFT,
+		RIGHT
+	};
+
 	vector<vector<int>> I_MINO = { {0, 0, 0, 0}, {TETROMINO_I, TETROMINO_I, TETROMINO_I, TETROMINO_I}, {0, 0, 0, 0}, {0, 0, 0, 0} };
 	vector<vector<int>> O_MINO = { {0, TETROMINO_O, TETROMINO_O, 0}, {0, TETROMINO_O, TETROMINO_O, 0} };
 	vector<vector<int>> T_MINO = { {0, TETROMINO_T, 0}, {TETROMINO_T, TETROMINO_T, TETROMINO_T}, {0, 0, 0} };
@@ -41,7 +47,8 @@ private:
 	void spawn();
 	void writeToBoard(vector<vector<int>> tetromino, bool clear = false);
 	void tick();
-	bool willOverlap();
+	void move(int direction);
+	bool willCollide(int direction);
 
 public:
 	Game();
