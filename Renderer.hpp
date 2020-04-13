@@ -18,10 +18,10 @@ private:
 
 	Texture* backgroundTexture;
 	Texture* tetrominoTexture;
-	SDL_Rect tetrominoSpriteClips[7];
+	SDL_Rect tetrominoSpriteClips[TotalTypes];
 
-	void setTetrominoSpriteClip(TetrominoTypes tetrominoType, int x, int y, int w, int h);
-	void Renderer::setTetrominoSpriteClip(TetrominoTypes tetrominoType, int x, int y);
+	void setTetrominoSpriteClip(int tetrominoType, int x, int y, int w, int h);
+	void Renderer::setTetrominoSpriteClip(int tetrominoType, int x, int y);
 
 public:
 	Renderer();
@@ -30,7 +30,7 @@ public:
 	bool initialize(string title, int width, int height);
 	bool loadMedia();
 	void clear();
-	void update();
+	void update(int board[][NUM_COLS]);
 	void present();
 	void close();
 };

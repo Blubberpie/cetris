@@ -52,26 +52,24 @@ bool Renderer::loadMedia() {
 		cout << "Couldn't load tetrominos texture!";
 	}
 	else {
-		setTetrominoSpriteClip(TETROMINO_I, 0, 0);
-		setTetrominoSpriteClip(TETROMINO_O, TILE_SPRITE_SIZE, 0);
-		setTetrominoSpriteClip(TETROMINO_T, TILE_SPRITE_SIZE * 2, 0);
-		setTetrominoSpriteClip(TETROMINO_S, TILE_SPRITE_SIZE * 3, 0);
-		setTetrominoSpriteClip(TETROMINO_Z, TILE_SPRITE_SIZE * 4, 0);
-		setTetrominoSpriteClip(TETROMINO_J, TILE_SPRITE_SIZE * 5, 0);
-		setTetrominoSpriteClip(TETROMINO_L, TILE_SPRITE_SIZE * 6, 0);
+		int totalTypesHalf = TotalTypes / 2;
+		for (int i = 0; i < totalTypesHalf; i++) {
+			setTetrominoSpriteClip(i, TILE_SPRITE_SIZE * i, 0);
+			setTetrominoSpriteClip(i + totalTypesHalf, TILE_SPRITE_SIZE * i, TILE_SPRITE_SIZE);
+		}
 	}
 
 	return success;
 }
 
-void Renderer::setTetrominoSpriteClip(TetrominoTypes tetrominoType, int x, int y, int w, int h) {
+void Renderer::setTetrominoSpriteClip(int tetrominoType, int x, int y, int w, int h) {
 	tetrominoSpriteClips[tetrominoType].x = x;
 	tetrominoSpriteClips[tetrominoType].y = y;
 	tetrominoSpriteClips[tetrominoType].w = w;
 	tetrominoSpriteClips[tetrominoType].h = h;
 }
 
-void Renderer::setTetrominoSpriteClip(TetrominoTypes tetrominoType, int x, int y) {
+void Renderer::setTetrominoSpriteClip(int tetrominoType, int x, int y) {
 	tetrominoSpriteClips[tetrominoType].x = x;
 	tetrominoSpriteClips[tetrominoType].y = y;
 	tetrominoSpriteClips[tetrominoType].w = TILE_SPRITE_SIZE;
@@ -82,13 +80,16 @@ void Renderer::clear() {
 	SDL_RenderClear(sdlRenderer);
 }
 
-void Renderer::update() {
+void Renderer::update(int board[][NUM_COLS]) {
 	backgroundTexture->render(sdlRenderer, 0, 0);
-	for (int i = 0; i < 10; i++) {
-		for (int j = 0; j < 20; j++) {
-			tetrominoTexture->render(sdlRenderer, (i * TILE_RENDER_SIZE) + BOARD_START_X, (j * TILE_RENDER_SIZE) + BOARD_START_Y, &tetrominoSpriteClips[TETROMINO_I]);
+	for (int i = NUM_ROWS - NUM_VISIBLE_ROWS; i < NUM_ROWS; i++) {
+		for (int j = 0; j < NUM_COLS; j++) {
+			int currentTile = board[i][j];
+			tetrominoTexture->render(sdlRenderer, (j * TILE_RENDER_SIZE) + BOARD_START_X, (i * TILE_RENDER_SIZE) + BOARD_START_Y, &tetrominoSpriteClips[currentTile]);
 		}
 	}
+
+
 }
 
 void Renderer::present() {

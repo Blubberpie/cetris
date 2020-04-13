@@ -1,5 +1,6 @@
 #pragma once
 enum TetrominoTypes {
+	EMPTY_TILE,
 	TETROMINO_I,
 	TETROMINO_O,
 	TETROMINO_T,
@@ -7,5 +8,13 @@ enum TetrominoTypes {
 	TETROMINO_Z,
 	TETROMINO_J,
 	TETROMINO_L,
-	TetrominoCount
+	GHOST_WHITE,
+	GHOST_I,
+	GHOST_O,
+	GHOST_T,
+	GHOST_S,
+	GHOST_Z,
+	GHOST_J,
+	GHOST_L,
+	TotalTypes
 };
