@@ -48,6 +48,14 @@ void Texture::render(SDL_Renderer* renderer, int x, int y, SDL_Rect* clip) {
 	SDL_RenderCopy(renderer, mTexture, clip, &renderRect);
 }
 
+void Texture::setBlendMode(SDL_BlendMode blending) {
+	SDL_SetTextureBlendMode(mTexture, blending);
+}
+
+void Texture::setAlpha(Uint8 alpha) {
+	SDL_SetTextureAlphaMod(mTexture, alpha);
+}
+
 void BackgroundTexture::render(SDL_Renderer* renderer, int x, int y, SDL_Rect* clip) {
 	SDL_RenderCopy(renderer, getTexture(), clip, NULL);
 }

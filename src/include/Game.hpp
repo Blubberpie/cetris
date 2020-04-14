@@ -23,6 +23,7 @@ private:
 	struct Tetromino {
 		int row;
 		int col;
+		int ghostRow;
 		int mType;
 		int orientation;
 		vector<vector<int>> mTetromino;
@@ -59,6 +60,8 @@ private:
 	void writeToBoard(vector<vector<int>> &tetromino, bool clear = false);
 	void tick();
 	void move(int direction);
+	int calculateDrop();
+	void hardDrop();
 	void rotate(int direction);
 	bool passedKickTest(vector<vector<int>>& tetromino, int direction);
 	bool performKickTests(vector<vector<int>>& tetromino, int kickTable[4][2]);
@@ -69,6 +72,7 @@ private:
 	void clearLines();
 	void cascade(int endRow);
 	void hold();
+	void commitTetromino();
 
 public:
 	Game();

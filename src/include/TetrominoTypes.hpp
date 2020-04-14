@@ -8,13 +8,5 @@ enum TetrominoTypes {
 	TETROMINO_Z,
 	TETROMINO_J,
 	TETROMINO_L,
-	GHOST_WHITE,
-	GHOST_I,
-	GHOST_O,
-	GHOST_T,
-	GHOST_S,
-	GHOST_Z,
-	GHOST_J,
-	GHOST_L,
 	TotalTypes
 };

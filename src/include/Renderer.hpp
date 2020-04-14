@@ -35,6 +35,7 @@ public:
 	bool loadMedia();
 	void clear();
 	void renderBackground();
+	void renderGhost(vector<vector<int>>& tetromino, int row, int col);
 	void renderHoldBox(int holdType);
 	void renderNextBox(queue<int> tetrominoNext);
 	void update(int board[][NUM_COLS]);

@@ -52,10 +52,9 @@ bool Renderer::loadMedia() {
 		cout << "Couldn't load tetrominos texture!";
 	}
 	else {
-		int totalTypesHalf = TotalTypes / 2;
-		for (int i = 0; i < totalTypesHalf; i++) {
+		tetrominoTexture->setBlendMode(SDL_BLENDMODE_BLEND);
+		for (int i = 0; i < TotalTypes; i++) {
 			setTetrominoSpriteClip(i, TILE_SPRITE_SIZE * i, 0);
-			setTetrominoSpriteClip(i + totalTypesHalf, TILE_SPRITE_SIZE * i, TILE_SPRITE_SIZE);
 		}
 	}
 
@@ -95,6 +94,12 @@ void Renderer::renderTetromino(vector<vector<int>>& tetromino, int x, int y) {
 			}
 		}
 	}
+}
+
+void Renderer::renderGhost(vector<vector<int>>& tetromino, int row, int col) {
+	tetrominoTexture->setAlpha(127);
+	renderTetromino(tetromino, (col * TILE_RENDER_SIZE) + BOARD_START_X, (row * TILE_RENDER_SIZE) + BOARD_START_Y);
+	tetrominoTexture->setAlpha(255);
 }
 
 void Renderer::renderHoldBox(int holdType) {

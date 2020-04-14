@@ -26,6 +26,8 @@ public:
 	int getWidth();
 	int getHeight();
 	SDL_Texture* getTexture();
+	void setBlendMode(SDL_BlendMode blending);
+	void setAlpha(Uint8 alpha);
 };
 
 class BackgroundTexture : public Texture {

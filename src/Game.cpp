@@ -28,6 +28,7 @@ void Game::run() {
 			else if(event.type == SDL_KEYDOWN){
 				switch(event.key.keysym.sym) {
 				case SDLK_w:
+					hardDrop();
 					break;
 				case SDLK_a:
 					move(LEFT);
@@ -87,6 +88,7 @@ void Game::spawn() {
 	currentTetromino.mType = tetrominoNext.front();
 	tetrominoNext.pop();
 	currentTetromino.mTetromino = TetrominoShape::getTetrominoShape(currentTetromino.mType);
+	currentTetromino.ghostRow = calculateDrop();
 	writeToBoard(currentTetromino.mTetromino);
 }
 
@@ -127,13 +129,7 @@ void Game::move(int direction) {
 		if (!willCollide(currentTetromino.mTetromino, currentTetromino.row + 1, currentTetromino.col)) {
 			currentTetromino.row++;
 		}
-		else {
-			writeToBoard(currentTetromino.mTetromino);
-			if (currentTetromino.row < lastHighestRow) { lastHighestRow = currentTetromino.row; }
-			clearLines();
-			spawn();
-			alreadyHeld = false;
-		}
+		else commitTetromino();
 		break;
 	case LEFT:
 		if (!willCollide(currentTetromino.mTetromino, currentTetromino.row, currentTetromino.col - 1)) {
@@ -141,12 +137,37 @@ void Game::move(int direction) {
 		}
 		break;
 	case RIGHT:
+		currentTetromino.ghostRow = calculateDrop();
 		if (!willCollide(currentTetromino.mTetromino, currentTetromino.row, currentTetromino.col + 1)) {
 			currentTetromino.col++;
 		}
 		break;
 	}
+	currentTetromino.ghostRow = calculateDrop();
 	writeToBoard(currentTetromino.mTetromino);
+}
+
+int Game::calculateDrop() {
+	writeToBoard(currentTetromino.mTetromino, true);
+	int newRow = currentTetromino.row + 1;
+	while (!willCollide(currentTetromino.mTetromino, newRow, currentTetromino.col)) {
+		newRow++;
+	}
+	return newRow - 1;
+}
+
+void Game::hardDrop() {
+	writeToBoard(currentTetromino.mTetromino, true);
+	currentTetromino.row = currentTetromino.ghostRow;
+	commitTetromino();
+}
+
+void Game::commitTetromino() {
+	writeToBoard(currentTetromino.mTetromino);
+	if (currentTetromino.row < lastHighestRow) { lastHighestRow = currentTetromino.row; }
+	clearLines();
+	spawn();
+	alreadyHeld = false;
 }
 
 void Game::rotate(int direction) {
@@ -181,6 +202,7 @@ void Game::rotate(int direction) {
 			currentTetromino.mTetromino = copyTetromino;
 		}
 	}
+	currentTetromino.ghostRow = calculateDrop();
 	writeToBoard(currentTetromino.mTetromino);
 }
 
@@ -321,6 +343,7 @@ void Game::hold() {
 		currentTetromino.reset();
 		currentTetromino.mType = tmp;
 		currentTetromino.mTetromino = TetrominoShape::getTetrominoShape(tmp);
+		currentTetromino.ghostRow = calculateDrop();
 		writeToBoard(currentTetromino.mTetromino);
 	}
 }
@@ -329,6 +352,7 @@ void Game::updateScreen() {
 	renderer.clear();
 	renderer.renderBackground();
 	renderer.update(gameBoard);
+	renderer.renderGhost(currentTetromino.mTetromino, currentTetromino.ghostRow, currentTetromino.col);
 	renderer.renderHoldBox(holdType);
 	renderer.renderNextBox(tetrominoNext);
 	renderer.present();
