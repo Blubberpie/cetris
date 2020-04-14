@@ -39,8 +39,10 @@ void Game::run() {
 					move(RIGHT);
 					break;
 				case SDLK_DOWN:
+					rotate(LEFT);
 					break;
 				case SDLK_RIGHT:
+					rotate(RIGHT);
 					break;
 				case SDLK_q:
 					break;
@@ -115,7 +117,7 @@ void Game::spawn() {
 	}
 }
 
-void Game::writeToBoard(vector<vector<int>> tetromino, bool clear) {
+void Game::writeToBoard(vector<vector<int>> &tetromino, bool clear) {
 	int newRow, newCol;
 	if (clear) {
 		for (size_t row = 0; row < tetromino.size(); row++) {
@@ -147,52 +149,189 @@ void Game::tick() {
 
 void Game::move(int direction) {
 	writeToBoard(currentTetromino.mTetromino, true);
-	if (!willCollide(direction)) {
-		switch (direction) {
-		case DOWN:
+	switch (direction) {
+	case DOWN:
+		if (!willCollide(currentTetromino.mTetromino, currentTetromino.row + 1, currentTetromino.col)) {
 			currentTetromino.row++;
-			break;
-		case LEFT:
-			currentTetromino.col--;
-			break;
-		case RIGHT:
-			currentTetromino.col++;
-			break;
-		default:
-			break;
 		}
-		writeToBoard(currentTetromino.mTetromino);
+		else {
+			writeToBoard(currentTetromino.mTetromino);
+			if (currentTetromino.row < lastHighestRow) { lastHighestRow = currentTetromino.row; }
+			clearLines();
+			spawn();
+		}
+		break;
+	case LEFT:
+		if (!willCollide(currentTetromino.mTetromino, currentTetromino.row, currentTetromino.col - 1)) {
+			currentTetromino.col--;
+		}
+		break;
+	case RIGHT:
+		if (!willCollide(currentTetromino.mTetromino, currentTetromino.row, currentTetromino.col + 1)) {
+			currentTetromino.col++;
+		}
+		break;
 	}
-	else {
-		writeToBoard(currentTetromino.mTetromino);
-		if (direction == DOWN) { spawn(); }
-	}
+	writeToBoard(currentTetromino.mTetromino);
 }
 
-bool Game::willCollide(int direction) {
-	int newRow, newCol;
-	for (int row = 0; row < currentTetromino.mTetromino.size(); row++) {
-		for (int col = 0; col < currentTetromino.mTetromino[0].size(); col++) {
-			newRow = currentTetromino.row + row;
-			newCol = currentTetromino.col + col;
+void Game::rotate(int direction) {
+	writeToBoard(currentTetromino.mTetromino, true);
+	if (currentTetromino.mTetromino.size() == currentTetromino.mTetromino[0].size()) {
+		vector<vector<int>> copyTetromino = currentTetromino.mTetromino;
+		switch (direction) {
+		case LEFT:
+			transposeLeft(copyTetromino);
+			break;
+		case RIGHT:
+			transposeRight(copyTetromino);
+			break;
+		}
+		reverseColumns(copyTetromino);
+		if (passedKickTest(copyTetromino, direction)) {
 			switch (direction) {
-			case DOWN:
-				newRow++;
+			case LEFT:
+				if (currentTetromino.orientation - 1 < 0) {
+					currentTetromino.orientation = LEFT;
+				}
+				else { currentTetromino.orientation--; 
+				}
 				break;
 			case RIGHT:
-				newCol++;
-				break;
-			case LEFT:
-				newCol--;
+				if (currentTetromino.orientation + 1 >= numDirections) {
+					currentTetromino.orientation = 0;
+				}
+				else { currentTetromino.orientation++; }
 				break;
 			}
-			if (currentTetromino.mTetromino[row][col] != 0) {
-				if (newRow >= NUM_ROWS || newCol >= NUM_COLS || newCol < 0) { return true; } // Out of bounds
-				if (currentTetromino.mTetromino[row][col] - gameBoard[newRow][newCol] != currentTetromino.mTetromino[row][col]) { return true; }
+			currentTetromino.mTetromino = copyTetromino;
+		}
+	}
+	writeToBoard(currentTetromino.mTetromino);
+}
+
+bool Game::passedKickTest(vector<vector<int>>& tetromino, int direction) {
+	// Test 1
+	if (!willCollide(tetromino, currentTetromino.row, currentTetromino.col)) {
+		return true; 
+	}
+	else {
+		if (currentTetromino.mType == TETROMINO_I) {
+			switch (currentTetromino.orientation) {
+			case UP:
+				if (direction == RIGHT) { return(performKickTests(tetromino, KICK_TABLE_I_UP_RIGHT)); }
+				else if (direction == LEFT) { return(performKickTests(tetromino, KICK_TABLE_I_RIGHT_DOWN)); }
+			case RIGHT:
+				if (direction == RIGHT) { return(performKickTests(tetromino, KICK_TABLE_I_RIGHT_DOWN)); }
+				else if (direction == LEFT) { return(performKickTests(tetromino, KICK_TABLE_I_DOWN_LEFT)); }
+			case DOWN:
+				if (direction == RIGHT) { return(performKickTests(tetromino, KICK_TABLE_I_DOWN_LEFT)); }
+				else if (direction == LEFT) { return(performKickTests(tetromino, KICK_TABLE_I_LEFT_UP)); }
+				break;
+			case LEFT:
+				if (direction == RIGHT) { return(performKickTests(tetromino, KICK_TABLE_I_LEFT_UP)); }
+				else if (direction == LEFT) { return(performKickTests(tetromino, KICK_TABLE_I_UP_RIGHT)); }
+				break;
+			}
+		}
+		else {
+			switch (currentTetromino.orientation) {
+			case UP:
+				if (direction == RIGHT) { return(performKickTests(tetromino, KICK_TABLE_UP_RIGHT)); }
+				else if (direction == LEFT) { return(performKickTests(tetromino, KICK_TABLE_DOWN_LEFT)); }
+			case RIGHT:
+				return(performKickTests(tetromino, KICK_TABLE_RIGHT_DOWN));
+			case DOWN:
+				if (direction == RIGHT) { return(performKickTests(tetromino, KICK_TABLE_DOWN_LEFT)); }
+				else if (direction == LEFT) { return(performKickTests(tetromino, KICK_TABLE_UP_RIGHT)); }
+				break;
+			case LEFT:
+				return(performKickTests(tetromino, KICK_TABLE_LEFT_UP));
+				break;
 			}
 		}
 	}
 	return false;
+}
+
+bool Game::performKickTests(vector<vector<int>>& tetromino, int kickTable[4][2]) {
+	// Tests 2 - 5
+	for (int i = 0; i < 4; i++) {
+		if (!willCollide(tetromino, currentTetromino.row + kickTable[i][0], currentTetromino.col + kickTable[i][1])) {
+			currentTetromino.row += kickTable[i][0];
+			currentTetromino.col += kickTable[i][1];
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Game::willCollide(vector<vector<int>> &tetromino, int startRow, int startCol) {
+	int newRow, newCol;
+	for (size_t row = 0; row < tetromino.size(); row++) {
+		for (size_t col = 0; col < tetromino[0].size(); col++) {
+			newRow = startRow + row;
+			newCol = startCol + col;
+			if (tetromino[row][col] != 0) {
+				if (newRow >= NUM_ROWS || newCol >= NUM_COLS || newCol < 0) { return true; } // Out of bounds
+				if (tetromino[row][col] - gameBoard[newRow][newCol] != tetromino[row][col]) { return true; }
+			}
+		}
+	}
+	return false;
+}
+
+void Game::transposeLeft(vector<vector<int>> &tetromino) {
+	for (size_t row = 0; row < tetromino.size(); row++) {
+		for (size_t col = row; col < tetromino[0].size(); col++) {
+			swap(tetromino[row][col], tetromino[col][row]);
+		}
+	}
+}
+void Game::transposeRight(vector<vector<int>> &tetromino) {
+	for (size_t row = 0, bRow = tetromino.size() - 1; row < tetromino.size() && bRow >= 0; row++, bRow--) {
+		for (size_t col = bRow, bCol = row; col >= 0 && bCol < tetromino[0].size(); col--, bCol++) {
+			swap(tetromino[row][col], tetromino[bCol][bRow]);	
+		}
+	}
+}
+
+void Game::reverseColumns(vector<vector<int>> &tetromino) {
+	for (size_t col = 0; col < tetromino[0].size(); col++) {
+		for (size_t i = 0, j = tetromino[0].size() - 1; i < j; i++, j--) {
+			swap(tetromino[i][col], tetromino[j][col]);
+		}
+	}
+}
+
+void Game::clearLines() { // TODO find that one glitch
+	int totalLinesCleared = 0;
+	int lastKnownRow = currentTetromino.row;
+	// Only search a maximum of 4 lines, from the current tetromino's beginning row
+	for (int row = lastKnownRow; row < lastKnownRow + 4 && row < NUM_ROWS; row++) {
+		bool fullLine = true;
+		for (int col = 0; col < NUM_COLS; col++) {
+			if (gameBoard[row][col] == EMPTY_TILE) {
+				fullLine = false;
+				break;
+			}
+		}
+		if (fullLine) {
+			for (int col = 0; col < NUM_COLS; col++) {
+				gameBoard[row][col] = 0;
+			}
+			cascade(row);
+		}
+	}
+}
+
+void Game::cascade(int endRow) {
+	for (int row = endRow; row >= lastHighestRow; row--) {
+		for (int col = 0; col < NUM_COLS; col++) {
+			gameBoard[row][col] = gameBoard[row - 1][col];
+			gameBoard[row - 1][col] = EMPTY_TILE;
+		}
+	}
 }
 
 void Game::updateScreen() {
@@ -205,7 +344,7 @@ void Game::close() {
 }
 
 void Game::printBoard() {
-	for (int i = 0; i < NUM_VISIBLE_ROWS; i++) {
+	for (int i = 0; i < NUM_ROWS; i++) {
 		for (int j = 0; j < NUM_COLS; j++) {
 			cout << gameBoard[i][j];
 		}
@@ -221,6 +360,7 @@ void Game::Tetromino::reset() {
 	row = TETROMINO_SPAWN_ROW;
 	col = TETROMINO_SPAWN_COL;
 	mType = 0;
+	orientation = UP;
 	mTetromino.clear();
 	mTetromino.shrink_to_fit();
 }
