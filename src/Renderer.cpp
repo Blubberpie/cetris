@@ -1,4 +1,4 @@
-#include "Renderer.hpp"
+#include "include/Renderer.hpp"
 
 Renderer::Renderer() {
 	backgroundTexture = new BackgroundTexture();

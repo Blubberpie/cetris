@@ -102,17 +102,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="constants.hpp" />
-    <ClInclude Include="Game.hpp" />
-    <ClInclude Include="Renderer.hpp" />
-    <ClInclude Include="TetrominoTypes.hpp" />
-    <ClInclude Include="Texture.hpp" />
+    <ClInclude Include="src\include\constants.hpp" />
+    <ClInclude Include="src\include\Game.hpp" />
+    <ClInclude Include="src\include\Renderer.hpp" />
+    <ClInclude Include="src\include\TetrominoTypes.hpp" />
+    <ClInclude Include="src\include\Texture.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
