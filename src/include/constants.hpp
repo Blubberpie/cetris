@@ -18,6 +18,10 @@ namespace constants {
 	inline constexpr int TILE_RENDER_SIZE = BOARD_HEIGHT / NUM_VISIBLE_ROWS; // Size of tile to render
 	inline constexpr int BOARD_START_X = (SCREEN_WIDTH / 2) - (TILE_RENDER_SIZE * NUM_COLS/ 2);
 	inline constexpr int BOARD_START_Y = (SCREEN_HEIGHT / 2) - (TILE_RENDER_SIZE * NUM_VISIBLE_ROWS / 2);
+	inline constexpr int HOLD_START_X = BOARD_START_X - (5 * TILE_RENDER_SIZE);
+	inline constexpr int HOLD_START_Y = BOARD_START_Y + TILE_RENDER_SIZE;
+	inline constexpr int QUEUE_START_X = BOARD_START_X + (TILE_RENDER_SIZE * (1 + NUM_COLS));
+	inline constexpr int QUEUE_START_Y = HOLD_START_Y;
 	inline constexpr int NUM_TETROMINO_QUEUE = 14;
 	inline constexpr int NUM_PREVIEW_MINOS = 5;
 	inline constexpr int NUM_TETROMINO = 7;

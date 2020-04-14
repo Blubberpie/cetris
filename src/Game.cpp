@@ -45,6 +45,9 @@ void Game::run() {
 					rotate(RIGHT);
 					break;
 				case SDLK_q:
+					if (!alreadyHeld) {
+						hold();
+					}
 					break;
 				}
 			}
@@ -83,38 +86,8 @@ void Game::spawn() {
 	currentTetromino.reset();
 	currentTetromino.mType = tetrominoNext.front();
 	tetrominoNext.pop();
-	switch (currentTetromino.mType) {
-	case TETROMINO_I:
-		writeToBoard(I_MINO);
-		currentTetromino.mTetromino = I_MINO;
-		break;
-	case TETROMINO_O:
-		writeToBoard(O_MINO);
-		currentTetromino.mTetromino = O_MINO;
-		break;
-	case TETROMINO_T:
-		writeToBoard(T_MINO);
-		currentTetromino.mTetromino = T_MINO;
-		break;
-	case TETROMINO_S:
-		writeToBoard(S_MINO);
-		currentTetromino.mTetromino = S_MINO;
-		break;
-	case TETROMINO_Z:
-		writeToBoard(Z_MINO);
-		currentTetromino.mTetromino = Z_MINO;
-		break;
-	case TETROMINO_J:
-		writeToBoard(J_MINO);
-		currentTetromino.mTetromino = J_MINO;
-		break;
-	case TETROMINO_L:
-		writeToBoard(L_MINO);
-		currentTetromino.mTetromino = L_MINO;
-		break;
-	default:
-		break;
-	}
+	currentTetromino.mTetromino = TetrominoShape::getTetrominoShape(currentTetromino.mType);
+	writeToBoard(currentTetromino.mTetromino);
 }
 
 void Game::writeToBoard(vector<vector<int>> &tetromino, bool clear) {
@@ -159,6 +132,7 @@ void Game::move(int direction) {
 			if (currentTetromino.row < lastHighestRow) { lastHighestRow = currentTetromino.row; }
 			clearLines();
 			spawn();
+			alreadyHeld = false;
 		}
 		break;
 	case LEFT:
@@ -266,7 +240,7 @@ bool Game::performKickTests(vector<vector<int>>& tetromino, int kickTable[4][2])
 	return false;
 }
 
-bool Game::willCollide(vector<vector<int>> &tetromino, int startRow, int startCol) {
+bool Game::willCollide(vector<vector<int>>& tetromino, int startRow, int startCol) {
 	int newRow, newCol;
 	for (size_t row = 0; row < tetromino.size(); row++) {
 		for (size_t col = 0; col < tetromino[0].size(); col++) {
@@ -281,14 +255,14 @@ bool Game::willCollide(vector<vector<int>> &tetromino, int startRow, int startCo
 	return false;
 }
 
-void Game::transposeLeft(vector<vector<int>> &tetromino) {
+void Game::transposeLeft(vector<vector<int>>& tetromino) {
 	for (size_t row = 0; row < tetromino.size(); row++) {
 		for (size_t col = row; col < tetromino[0].size(); col++) {
 			swap(tetromino[row][col], tetromino[col][row]);
 		}
 	}
 }
-void Game::transposeRight(vector<vector<int>> &tetromino) {
+void Game::transposeRight(vector<vector<int>>& tetromino) {
 	for (size_t row = 0, bRow = tetromino.size() - 1; row < tetromino.size() && bRow >= 0; row++, bRow--) {
 		for (size_t col = bRow, bCol = row; col >= 0 && bCol < tetromino[0].size(); col--, bCol++) {
 			swap(tetromino[row][col], tetromino[bCol][bRow]);	
@@ -296,7 +270,7 @@ void Game::transposeRight(vector<vector<int>> &tetromino) {
 	}
 }
 
-void Game::reverseColumns(vector<vector<int>> &tetromino) {
+void Game::reverseColumns(vector<vector<int>>& tetromino) {
 	for (size_t col = 0; col < tetromino[0].size(); col++) {
 		for (size_t i = 0, j = tetromino[0].size() - 1; i < j; i++, j--) {
 			swap(tetromino[i][col], tetromino[j][col]);
@@ -334,9 +308,29 @@ void Game::cascade(int endRow) {
 	}
 }
 
+void Game::hold() {
+	alreadyHeld = true;
+	writeToBoard(currentTetromino.mTetromino, true);
+	if (holdType == EMPTY_TILE) {
+		holdType = currentTetromino.mType;
+		spawn();
+	}
+	else {
+		int tmp = holdType;
+		holdType = currentTetromino.mType;
+		currentTetromino.reset();
+		currentTetromino.mType = tmp;
+		currentTetromino.mTetromino = TetrominoShape::getTetrominoShape(tmp);
+		writeToBoard(currentTetromino.mTetromino);
+	}
+}
+
 void Game::updateScreen() {
 	renderer.clear();
+	renderer.renderBackground();
 	renderer.update(gameBoard);
+	renderer.renderHoldBox(holdType);
+	renderer.renderNextBox(tetrominoNext);
 	renderer.present();
 }
 

@@ -80,16 +80,46 @@ void Renderer::clear() {
 	SDL_RenderClear(sdlRenderer);
 }
 
-void Renderer::update(int board[][NUM_COLS]) {
+void Renderer::renderBackground() {
 	backgroundTexture->render(sdlRenderer, 0, 0);
-	for (int i = NUM_ROWS - NUM_VISIBLE_ROWS; i < NUM_ROWS; i++) {
-		for (int j = 0; j < NUM_COLS; j++) {
-			int currentTile = board[i][j];
-			tetrominoTexture->render(sdlRenderer, (j * TILE_RENDER_SIZE) + BOARD_START_X, (i * TILE_RENDER_SIZE) + BOARD_START_Y, &tetrominoSpriteClips[currentTile]);
+}
+
+void Renderer::renderTetromino(vector<vector<int>>& tetromino, int x, int y) {
+	if (!tetromino.empty()) {
+		for (size_t row = 0; row < tetromino.size(); row++) {
+			for (size_t col = 0; col < tetromino[0].size(); col++) {
+				int currentTile = tetromino[row][col];
+				if (currentTile != EMPTY_TILE) {
+					tetrominoTexture->render(sdlRenderer, (col * TILE_RENDER_SIZE) + x, (row * TILE_RENDER_SIZE) + y, &tetrominoSpriteClips[currentTile]);
+				}
+			}
 		}
 	}
+}
 
+void Renderer::renderHoldBox(int holdType) {
+	vector<vector<int>> holdTetromino = TetrominoShape::getTetrominoShape(holdType);
+	renderTetromino(holdTetromino, HOLD_START_X, HOLD_START_Y);
+}
 
+void Renderer::renderNextBox(queue<int> tetrominoNext) {
+	int startY = QUEUE_START_Y;
+	vector<vector<int>> nextTetromino;
+	while (!tetrominoNext.empty()) {
+		nextTetromino = TetrominoShape::getTetrominoShape(tetrominoNext.front());
+		tetrominoNext.pop();
+		renderTetromino(nextTetromino, QUEUE_START_X, startY);
+		startY += (4 * TILE_RENDER_SIZE);
+	}
+}
+
+void Renderer::update(int board[][NUM_COLS]) {
+	for (int row = NUM_ROWS - NUM_VISIBLE_ROWS; row < NUM_ROWS; row++) {
+		for (int col = 0; col < NUM_COLS; col++) {
+			int currentTile = board[row][col];
+			tetrominoTexture->render(sdlRenderer, (col * TILE_RENDER_SIZE) + BOARD_START_X, (row * TILE_RENDER_SIZE) + BOARD_START_Y, &tetrominoSpriteClips[currentTile]);
+		}
+	}
 }
 
 void Renderer::present() {

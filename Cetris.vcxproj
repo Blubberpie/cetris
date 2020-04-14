@@ -105,12 +105,14 @@
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
+    <ClCompile Include="src\TetrominoShape.cpp" />
     <ClCompile Include="src\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\include\constants.hpp" />
     <ClInclude Include="src\include\Game.hpp" />
     <ClInclude Include="src\include\Renderer.hpp" />
+    <ClInclude Include="src\include\TetrominoShape.hpp" />
     <ClInclude Include="src\include\TetrominoTypes.hpp" />
     <ClInclude Include="src\include\Texture.hpp" />
   </ItemGroup>

@@ -1,9 +1,10 @@
 #pragma once
 #include "Renderer.hpp"
 #include "constants.hpp"
-#include <queue>
+#include "TetrominoShape.hpp"
 #include <iostream>
 #include <ctime>
+#include <queue>
 
 using namespace std;
 using namespace constants;
@@ -16,6 +17,8 @@ private:
 	queue<int> tetrominoGenerated;
 	queue<int> tetrominoNext;
 	int lastHighestRow = NUM_ROWS - 1;
+	int holdType = EMPTY_TILE;
+	bool alreadyHeld = false;
 	
 	struct Tetromino {
 		int row;
@@ -35,15 +38,6 @@ private:
 		LEFT,
 		numDirections
 	};
-
-	// Tetromino shapes
-	vector<vector<int>> I_MINO = { {0, 0, 0, 0}, {TETROMINO_I, TETROMINO_I, TETROMINO_I, TETROMINO_I}, {0, 0, 0, 0}, {0, 0, 0, 0} };
-	vector<vector<int>> O_MINO = { {0, TETROMINO_O, TETROMINO_O, 0}, {0, TETROMINO_O, TETROMINO_O, 0} };
-	vector<vector<int>> T_MINO = { {0, TETROMINO_T, 0}, {TETROMINO_T, TETROMINO_T, TETROMINO_T}, {0, 0, 0} };
-	vector<vector<int>> S_MINO = { {0, TETROMINO_S, TETROMINO_S}, {TETROMINO_S, TETROMINO_S, 0}, {0, 0, 0} };
-	vector<vector<int>> Z_MINO = { {TETROMINO_Z, TETROMINO_Z, 0}, {0, TETROMINO_Z, TETROMINO_Z}, {0, 0, 0} };
-	vector<vector<int>> J_MINO = { {TETROMINO_J, 0, 0}, {TETROMINO_J, TETROMINO_J, TETROMINO_J}, {0, 0, 0} };
-	vector<vector<int>> L_MINO = { {0, 0, TETROMINO_L}, {TETROMINO_L, TETROMINO_L, TETROMINO_L}, {0, 0, 0} };
 
 	
 	// Kick tables based on https://tetris.wiki/Super_Rotation_System
@@ -66,14 +60,15 @@ private:
 	void tick();
 	void move(int direction);
 	void rotate(int direction);
-	bool passedKickTest(vector<vector<int>> &tetromino, int direction);
+	bool passedKickTest(vector<vector<int>>& tetromino, int direction);
 	bool performKickTests(vector<vector<int>>& tetromino, int kickTable[4][2]);
 	bool willCollide(vector<vector<int>>& tetromino, int startRow, int startCol);
-	void transposeLeft(vector<vector<int>> &tetromino);
-	void transposeRight(vector<vector<int>> &tetromino);
-	void reverseColumns(vector<vector<int>> &tetromino);
+	void transposeLeft(vector<vector<int>>& tetromino);
+	void transposeRight(vector<vector<int>>& tetromino);
+	void reverseColumns(vector<vector<int>>& tetromino);
 	void clearLines();
 	void cascade(int endRow);
+	void hold();
 
 public:
 	Game();
