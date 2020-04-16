@@ -14,12 +14,29 @@ class Game
 private:
 	Renderer renderer;
 	int gameBoard[NUM_ROWS][NUM_COLS] = {};
-	queue<int> tetrominoGenerated;
-	queue<int> tetrominoNext;
 	int lastHighestRow = NUM_ROWS - 1;
 	int holdType = EMPTY_TILE;
 	bool alreadyHeld = false;
-	
+	bool dropped = false;
+
+	queue<int> tetrominoGenerated;
+	queue<int> tetrominoNext;
+
+	Uint32 lastTick = 0;
+	Uint32 lastLockDelay = 0;
+
+	bool alreadyPressedDown = false;
+	bool alreadyPressedLeft = false;
+	bool alreadyPressedRight = false;
+
+	enum Direction {
+		UP,
+		RIGHT,
+		DOWN,
+		LEFT,
+		numDirections
+	};
+
 	struct Tetromino {
 		int row;
 		int col;
@@ -32,16 +49,20 @@ private:
 		void reset();
 	} currentTetromino;
 
-	enum Direction {
-		UP,
-		RIGHT,
-		DOWN,
-		LEFT,
-		numDirections
+	struct KeyboardKey {
+		Direction direction;
+		bool alreadyPressed = false;
+		int delay;
+		int repeatRate;
+		Uint32 lastRepeatTime = 0;
+		Uint32 lastDelayTime = 0;
 	};
 
+	KeyboardKey downKey;
+	KeyboardKey leftKey;
+	KeyboardKey rightKey;
 	
-	// Kick tables based on https://tetris.wiki/Super_Rotation_System
+	// SRS kick tables based on https://tetris.wiki/Super_Rotation_System
 	int KICK_TABLE_UP_RIGHT[4][2] = { {0, -1}, {-1, -1}, {2, 0}, {2, -1} }; // UP -> RIGHT = DOWN -> RIGHT
 	int KICK_TABLE_RIGHT_DOWN[4][2] = { {0, 1}, {1, 1}, {-2, 0}, {-2, 1} }; // RIGHT -> DOWN = RIGHT -> UP
 	int KICK_TABLE_DOWN_LEFT[4][2] = { {0, 1}, {-1, 1}, {2, 0}, {2, 1} }; // DOWN -> LEFT = UP -> LEFT
@@ -60,6 +81,7 @@ private:
 	void writeToBoard(vector<vector<int>> &tetromino, bool clear = false);
 	void tick();
 	void move(int direction);
+	void handleKeyPress(KeyboardKey& key);
 	int calculateDrop();
 	void hardDrop();
 	void rotate(int direction);
@@ -72,7 +94,8 @@ private:
 	void clearLines();
 	void cascade(int endRow);
 	void hold();
-	void commitTetromino();
+	void resetDirections();
+	void lockTetromino();
 
 public:
 	Game();

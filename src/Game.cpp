@@ -1,6 +1,13 @@
 #include "include/Game.hpp"
 
 Game::Game() {
+	downKey.direction = DOWN;
+	downKey.delay = DROP_DELAY;
+	downKey.repeatRate = DROP_REPEAT_RATE;
+	leftKey.direction = LEFT;
+	leftKey.delay = rightKey.delay = DELAYED_AUTO_SHIFT;
+	leftKey.repeatRate = rightKey.repeatRate = AUTO_REPEAT_RATE;
+	rightKey.direction = RIGHT;
 }
 
 Game::~Game() {
@@ -17,27 +24,24 @@ void Game::run() {
 	srand((unsigned int)time(nullptr));
 	bool quit = false;
 	SDL_Event event;
+	const Uint8* keyboardStates = SDL_GetKeyboardState(NULL);
+	Uint32 currentTick;
 	checkAndGenerateTetrominoSet();
 	checkAndRefillTetrominoQueue();
 	spawn();
 	while (!quit) {
+		// Note: poll all events before checking key states
 		while (SDL_PollEvent(&event) != 0) {
 			if (event.type == SDL_QUIT) {
 				quit = true;
 			}
-			else if(event.type == SDL_KEYDOWN){
-				switch(event.key.keysym.sym) {
+			else if(event.type == SDL_KEYDOWN && event.key.repeat == 0){
+				switch (event.key.keysym.sym) {
 				case SDLK_w:
 					hardDrop();
 					break;
-				case SDLK_a:
-					move(LEFT);
-					break;
-				case SDLK_s:
-					move(DOWN);
-					break;
-				case SDLK_d:
-					move(RIGHT);
+				case SDLK_q:
+					if (!alreadyHeld) hold();
 					break;
 				case SDLK_DOWN:
 					rotate(LEFT);
@@ -45,14 +49,36 @@ void Game::run() {
 				case SDLK_RIGHT:
 					rotate(RIGHT);
 					break;
-				case SDLK_q:
-					if (!alreadyHeld) {
-						hold();
-					}
-					break;
 				}
 			}
 		}
+
+		if (keyboardStates[SDL_SCANCODE_S]) handleKeyPress(downKey);
+		else downKey.alreadyPressed = false;
+
+		if (keyboardStates[SDL_SCANCODE_A] && !rightKey.alreadyPressed) {
+			handleKeyPress(leftKey);
+		} else if(rightKey.alreadyPressed) {
+				handleKeyPress(rightKey);
+				leftKey.alreadyPressed = false;
+		}
+		else {
+			leftKey.alreadyPressed = false;
+		}
+		
+		if (keyboardStates[SDL_SCANCODE_D] && !leftKey.alreadyPressed) {
+			handleKeyPress(rightKey);
+		}
+		else if (leftKey.alreadyPressed) { 
+			handleKeyPress(leftKey);
+			rightKey.alreadyPressed = false;
+		}
+		else {
+			rightKey.alreadyPressed = false;
+		}
+		
+		tick();
+
 		checkAndRefillTetrominoQueue();
 		checkAndGenerateTetrominoSet();
 		updateScreen();
@@ -90,6 +116,7 @@ void Game::spawn() {
 	currentTetromino.mTetromino = TetrominoShape::getTetrominoShape(currentTetromino.mType);
 	currentTetromino.ghostRow = calculateDrop();
 	writeToBoard(currentTetromino.mTetromino);
+	resetDirections();
 }
 
 void Game::writeToBoard(vector<vector<int>> &tetromino, bool clear) {
@@ -119,7 +146,11 @@ void Game::writeToBoard(vector<vector<int>> &tetromino, bool clear) {
 }
 
 void Game::tick() {
-	
+	Uint32 currentTime = SDL_GetTicks();
+	if (currentTime - lastTick >= DROP_TICK_DELAY) {
+		move(DOWN);
+		lastTick = currentTime;
+	}
 }
 
 void Game::move(int direction) {
@@ -129,22 +160,57 @@ void Game::move(int direction) {
 		if (!willCollide(currentTetromino.mTetromino, currentTetromino.row + 1, currentTetromino.col)) {
 			currentTetromino.row++;
 		}
-		else commitTetromino();
+		else {
+			if (!dropped) {
+				lastLockDelay = SDL_GetTicks();
+				dropped = true;
+			}
+			else {
+				Uint32 currentTime = SDL_GetTicks();
+				if (currentTime - lastLockDelay >= LOCK_DELAY) {
+					lockTetromino();
+					dropped = false;
+				}
+			}
+		}
 		break;
 	case LEFT:
 		if (!willCollide(currentTetromino.mTetromino, currentTetromino.row, currentTetromino.col - 1)) {
 			currentTetromino.col--;
+			if (dropped) {
+				lastLockDelay = SDL_GetTicks();
+			}
 		}
 		break;
 	case RIGHT:
 		currentTetromino.ghostRow = calculateDrop();
 		if (!willCollide(currentTetromino.mTetromino, currentTetromino.row, currentTetromino.col + 1)) {
 			currentTetromino.col++;
+			if (dropped) {
+				lastLockDelay = SDL_GetTicks();
+			}
 		}
 		break;
 	}
 	currentTetromino.ghostRow = calculateDrop();
 	writeToBoard(currentTetromino.mTetromino);
+}
+
+void Game::handleKeyPress(KeyboardKey& key) {
+	if (!key.alreadyPressed) { // first time pressing
+		move(key.direction);
+		key.alreadyPressed = true;
+		key.lastDelayTime = SDL_GetTicks();
+	}
+	else {
+		Uint32 currentTime = SDL_GetTicks();
+		if (currentTime - key.lastDelayTime >= key.delay) {
+			if (currentTime - key.lastRepeatTime >= key.repeatRate) {
+				move(key.direction);
+				key.lastRepeatTime = currentTime;
+			}
+		}
+	}
 }
 
 int Game::calculateDrop() {
@@ -159,10 +225,11 @@ int Game::calculateDrop() {
 void Game::hardDrop() {
 	writeToBoard(currentTetromino.mTetromino, true);
 	currentTetromino.row = currentTetromino.ghostRow;
-	commitTetromino();
+	lockTetromino();
+	dropped = false;
 }
 
-void Game::commitTetromino() {
+void Game::lockTetromino() {
 	writeToBoard(currentTetromino.mTetromino);
 	if (currentTetromino.row < lastHighestRow) { lastHighestRow = currentTetromino.row; }
 	clearLines();
@@ -198,6 +265,9 @@ void Game::rotate(int direction) {
 				}
 				else { currentTetromino.orientation++; }
 				break;
+			}
+			if (dropped) {
+				lastLockDelay = SDL_GetTicks();
 			}
 			currentTetromino.mTetromino = copyTetromino;
 		}
@@ -345,7 +415,13 @@ void Game::hold() {
 		currentTetromino.mTetromino = TetrominoShape::getTetrominoShape(tmp);
 		currentTetromino.ghostRow = calculateDrop();
 		writeToBoard(currentTetromino.mTetromino);
+		resetDirections();
 	}
+}
+
+void Game::resetDirections() {
+	leftKey.alreadyPressed = false;
+	rightKey.alreadyPressed = false;
 }
 
 void Game::updateScreen() {

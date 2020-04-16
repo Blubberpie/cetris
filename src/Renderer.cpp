@@ -68,7 +68,7 @@ void Renderer::setTetrominoSpriteClip(int tetrominoType, int x, int y, int w, in
 	tetrominoSpriteClips[tetrominoType].h = h;
 }
 
-void Renderer::setTetrominoSpriteClip(int tetrominoType, int x, int y) {
+void  Renderer::setTetrominoSpriteClip(int tetrominoType, int x, int y) {
 	tetrominoSpriteClips[tetrominoType].x = x;
 	tetrominoSpriteClips[tetrominoType].y = y;
 	tetrominoSpriteClips[tetrominoType].w = TILE_SPRITE_SIZE;
@@ -98,7 +98,7 @@ void Renderer::renderTetromino(vector<vector<int>>& tetromino, int x, int y) {
 
 void Renderer::renderGhost(vector<vector<int>>& tetromino, int row, int col) {
 	tetrominoTexture->setAlpha(127);
-	renderTetromino(tetromino, (col * TILE_RENDER_SIZE) + BOARD_START_X, (row * TILE_RENDER_SIZE) + BOARD_START_Y);
+	renderTetromino(tetromino, (col * TILE_RENDER_SIZE) + BOARD_START_X, (row * TILE_RENDER_SIZE) + BOARD_START_Y - ((NUM_ROWS - NUM_VISIBLE_ROWS) * TILE_RENDER_SIZE));
 	tetrominoTexture->setAlpha(255);
 }
 
@@ -119,10 +119,11 @@ void Renderer::renderNextBox(queue<int> tetrominoNext) {
 }
 
 void Renderer::update(int board[][NUM_COLS]) {
+	int startY = BOARD_START_Y - ((NUM_ROWS - NUM_VISIBLE_ROWS) * TILE_RENDER_SIZE);
 	for (int row = NUM_ROWS - NUM_VISIBLE_ROWS; row < NUM_ROWS; row++) {
 		for (int col = 0; col < NUM_COLS; col++) {
 			int currentTile = board[row][col];
-			tetrominoTexture->render(sdlRenderer, (col * TILE_RENDER_SIZE) + BOARD_START_X, (row * TILE_RENDER_SIZE) + BOARD_START_Y, &tetrominoSpriteClips[currentTile]);
+			tetrominoTexture->render(sdlRenderer, (col * TILE_RENDER_SIZE) + BOARD_START_X, (row * TILE_RENDER_SIZE) + startY, &tetrominoSpriteClips[currentTile]);
 		}
 	}
 }
