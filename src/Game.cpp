@@ -504,7 +504,7 @@ void Game::updateMainGameScreen() {
 	renderer.clear();
 	renderer.renderBackground();
 	SDL_Color textColor = { 213, 213, 213 };
-	renderer.renderText("Left: A | Down: S | Right: D | Hard Drop: W | Hold: Q | Rotate Right: Right Arrow | Rotate Left: Down Arrow", 16, 16, textColor, false, false, true);
+	renderer.renderText("Left: A | Down: S | Right: D | Hard Drop: W | Hold: Q | Rotate Right: Right Arrow | Rotate Left: Down Arrow | Back to Main Menu: Esc", 16, 16, textColor, false, false, true);
 	renderer.renderText("Hold", HOLD_START_X, HOLD_START_Y - FONT_SIZE - 16, textColor);
 	renderer.renderText("Next", QUEUE_START_X, QUEUE_START_Y - FONT_SIZE - 16, textColor);
 	renderer.update(gameBoard);
