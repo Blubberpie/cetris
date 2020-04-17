@@ -116,6 +116,14 @@
     <ClInclude Include="src\include\TetrominoTypes.hpp" />
     <ClInclude Include="src\include\Texture.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="images\background.png" />
+    <Image Include="images\tileset_clean.png" />
+    <Image Include="images\tileset_default.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="font\gidole_regular.ttf" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

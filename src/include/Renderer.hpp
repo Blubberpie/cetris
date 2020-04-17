@@ -3,9 +3,6 @@
 #include "TetrominoTypes.hpp"
 #include "TetrominoShape.hpp"
 #include "constants.hpp"
-#include <SDL.h>
-#include <SDL_image.h>
-#include <iostream>
 #include <queue>
 #include <vector>
 
@@ -19,8 +16,10 @@ private:
 	SDL_Window* sdlWindow = NULL;
 	SDL_Renderer* sdlRenderer = NULL;
 
+	TTF_Font* font;
 	Texture* backgroundTexture;
 	Texture* tetrominoTexture;
+	Texture* textTexture;
 	SDL_Rect tetrominoSpriteClips[TotalTypes];
 
 	void setTetrominoSpriteClip(int tetrominoType, int x, int y, int w, int h);
@@ -38,6 +37,8 @@ public:
 	void renderGhost(vector<vector<int>>& tetromino, int row, int col);
 	void renderHoldBox(int holdType);
 	void renderNextBox(queue<int> tetrominoNext);
+	void renderText(string text, int x, int y, SDL_Color textColor, bool centerX = false, bool centerY = false);
+	void openFont(int fontSize);
 	void update(int board[][NUM_COLS]);
 	void present();
 	void close();

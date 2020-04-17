@@ -30,6 +30,27 @@ bool Texture::loadFromFile(SDL_Renderer* renderer, string path) {
 	return mTexture != NULL;
 }
 
+bool Texture::loadFromRenderedText(SDL_Renderer* renderer, TTF_Font* font, string text, SDL_Color color){
+	free();
+	SDL_Surface* textSurface = TTF_RenderText_Blended(font, text.c_str(), color);
+	if (textSurface == NULL) {
+		cout << "Couldn't render text surface! " << TTF_GetError();
+	}
+	else {
+		mTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+		if (mTexture == NULL) {
+			cout << "Couldn't create texture from surface! " << SDL_GetError();
+		}
+		else {
+			mWidth = textSurface->w;
+			mHeight = textSurface->h;
+		}
+
+		SDL_FreeSurface(textSurface);
+	}
+	return mTexture != NULL;
+}
+
 void Texture::free() {
 	if (mTexture != NULL) {
 		SDL_DestroyTexture(mTexture);

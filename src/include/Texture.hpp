@@ -1,6 +1,7 @@
 #pragma once
 #include "constants.hpp"
 #include <SDL.h>
+#include <SDL_ttf.h>
 #include <SDL_image.h>
 #include <iostream>
 
@@ -23,9 +24,11 @@ public:
 
 	virtual void render(SDL_Renderer* renderer, int x, int y, SDL_Rect* clip = NULL);
 	bool loadFromFile(SDL_Renderer* renderer, string path);
+	bool loadFromRenderedText(SDL_Renderer* renderer, TTF_Font* font, string text, SDL_Color color);
+
+	SDL_Texture* getTexture();
 	int getWidth();
 	int getHeight();
-	SDL_Texture* getTexture();
 	void setBlendMode(SDL_BlendMode blending);
 	void setAlpha(Uint8 alpha);
 };

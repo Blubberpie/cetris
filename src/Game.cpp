@@ -22,21 +22,61 @@ bool Game::initialize() {
 
 void Game::run() {
 	srand((unsigned int)time(nullptr));
-	bool quit = false;
-	SDL_Event event;
-	const Uint8* keyboardStates = SDL_GetKeyboardState(NULL);
-	Uint32 currentTick;
+	keyboardStates = SDL_GetKeyboardState(NULL);
 	checkAndGenerateTetrominoSet();
 	checkAndRefillTetrominoQueue();
 	spawn();
+	currentMenu = MAIN_MENU;
 	while (!quit) {
+		switch (currentMenu) {
+		case MAIN_MENU:
+			runMenu();
+			break;
+		case GAME:
+			runCetris();
+			break;
+		case SETTINGS:
+			break;
+		}
+	}
+}
+
+void Game::runMenu() {
+	while (!quit) {
+		while (SDL_PollEvent(&event) != 0) {
+			if (event.type == SDL_QUIT) {
+				quit = true;
+			}
+			else if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
+				switch (event.key.keysym.sym) {
+				case SDLK_SPACE:
+					gameOver = false;
+					currentMenu = GAME;
+					return;
+				case SDLK_ESCAPE:
+					quit = true;
+					break;
+				}
+			}
+		}
+		updateMainMenuScreen();
+	}
+}
+
+// The main game
+void Game::runCetris() {
+	while (!gameOver && !quit) {
 		// Note: poll all events before checking key states
 		while (SDL_PollEvent(&event) != 0) {
 			if (event.type == SDL_QUIT) {
 				quit = true;
 			}
-			else if(event.type == SDL_KEYDOWN && event.key.repeat == 0){
+			else if (event.type == SDL_KEYDOWN && event.key.repeat == 0) {
 				switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE:
+					gameOver = true;
+					currentMenu = MAIN_MENU;
+					break;
 				case SDLK_w:
 					hardDrop();
 					break;
@@ -58,31 +98,52 @@ void Game::run() {
 
 		if (keyboardStates[SDL_SCANCODE_A] && !rightKey.alreadyPressed) {
 			handleKeyPress(leftKey);
-		} else if(rightKey.alreadyPressed) {
-				handleKeyPress(rightKey);
-				leftKey.alreadyPressed = false;
+		}
+		else if (rightKey.alreadyPressed) {
+			handleKeyPress(rightKey);
+			leftKey.alreadyPressed = false;
 		}
 		else {
 			leftKey.alreadyPressed = false;
 		}
-		
+
 		if (keyboardStates[SDL_SCANCODE_D] && !leftKey.alreadyPressed) {
 			handleKeyPress(rightKey);
 		}
-		else if (leftKey.alreadyPressed) { 
+		else if (leftKey.alreadyPressed) {
 			handleKeyPress(leftKey);
 			rightKey.alreadyPressed = false;
 		}
 		else {
 			rightKey.alreadyPressed = false;
 		}
-		
+
+		if (gameOver) return;
+
 		tick();
 
 		checkAndRefillTetrominoQueue();
 		checkAndGenerateTetrominoSet();
-		updateScreen();
+		updateMainGameScreen();
 	}
+}
+
+void Game::resetGame() {
+	memset(gameBoard, 0, sizeof(gameBoard));
+	lastHighestRow = NUM_ROWS - 1;
+	holdType = EMPTY_TILE;
+	alreadyHeld = false;
+	dropped = false;
+
+	currentTick = 0;
+	lastTick = 0;
+	lastLockDelay = 0;
+
+	currentTetromino.reset();
+
+	checkAndGenerateTetrominoSet();
+	checkAndRefillTetrominoQueue();
+	spawn();
 }
 
 // Based on BPS's Random Generator
@@ -115,6 +176,12 @@ void Game::spawn() {
 	tetrominoNext.pop();
 	currentTetromino.mTetromino = TetrominoShape::getTetrominoShape(currentTetromino.mType);
 	currentTetromino.ghostRow = calculateDrop();
+	if (willCollide(currentTetromino.mTetromino, currentTetromino.row, currentTetromino.col)) {
+		gameOver = true;
+		currentMenu = MAIN_MENU;
+		resetGame();
+		return;
+	}
 	writeToBoard(currentTetromino.mTetromino);
 	resetDirections();
 }
@@ -225,8 +292,15 @@ int Game::calculateDrop() {
 void Game::hardDrop() {
 	writeToBoard(currentTetromino.mTetromino, true);
 	currentTetromino.row = currentTetromino.ghostRow;
-	lockTetromino();
-	dropped = false;
+	if (!(currentTetromino.row < 0)) {
+		lockTetromino();
+		dropped = false;
+	}
+	else {
+		gameOver = true;
+		currentMenu = MAIN_MENU;
+		resetGame();
+	}
 }
 
 void Game::lockTetromino() {
@@ -339,7 +413,7 @@ bool Game::willCollide(vector<vector<int>>& tetromino, int startRow, int startCo
 			newRow = startRow + row;
 			newCol = startCol + col;
 			if (tetromino[row][col] != 0) {
-				if (newRow >= NUM_ROWS || newCol >= NUM_COLS || newCol < 0) { return true; } // Out of bounds
+				if (newRow >= NUM_ROWS || newCol >= NUM_COLS || newCol < 0 || newRow < 0) { return true; } // Out of bounds
 				if (tetromino[row][col] - gameBoard[newRow][newCol] != tetromino[row][col]) { return true; }
 			}
 		}
@@ -394,8 +468,10 @@ void Game::clearLines() { // TODO find that one glitch
 void Game::cascade(int endRow) {
 	for (int row = endRow; row >= lastHighestRow; row--) {
 		for (int col = 0; col < NUM_COLS; col++) {
-			gameBoard[row][col] = gameBoard[row - 1][col];
-			gameBoard[row - 1][col] = EMPTY_TILE;
+			if (row - 1 >= 0) {
+				gameBoard[row][col] = gameBoard[row - 1][col];
+				gameBoard[row - 1][col] = EMPTY_TILE;
+			}
 		}
 	}
 }
@@ -424,26 +500,37 @@ void Game::resetDirections() {
 	rightKey.alreadyPressed = false;
 }
 
-void Game::updateScreen() {
+void Game::updateMainGameScreen() {
 	renderer.clear();
 	renderer.renderBackground();
+	SDL_Color textColor = { 213, 213, 213 };
+	renderer.renderText("Hold", HOLD_START_X, HOLD_START_Y - FONT_SIZE - 16, textColor);
+	renderer.renderText("Next", QUEUE_START_X, QUEUE_START_Y - FONT_SIZE - 16, textColor);
 	renderer.update(gameBoard);
-	renderer.renderGhost(currentTetromino.mTetromino, currentTetromino.ghostRow, currentTetromino.col);
+	if (currentTetromino.ghostRow > currentTetromino.row) {
+		renderer.renderGhost(currentTetromino.mTetromino, currentTetromino.ghostRow, currentTetromino.col);
+	}
 	renderer.renderHoldBox(holdType);
 	renderer.renderNextBox(tetrominoNext);
 	renderer.present();
 }
 
-void Game::close() {
+void Game::updateMainMenuScreen() {
+	renderer.clear();
+	renderer.renderBackground();
+	SDL_Color textColor;
+	if (gameOver) {
+		textColor = { 220, 16, 72 };
+		renderer.renderText("GAME OVER", 0, 22, textColor, true);
+	}
+	textColor = { 50, 200, 220 };
+	renderer.renderText("Cetris", 0, (SCREEN_HEIGHT / 2) - (FONT_SIZE * 2), textColor, true);
+	textColor = { 213, 213, 213 };
+	renderer.renderText("Press \"space\" to play!", 0, 0, textColor, true, true);
+	renderer.present();
 }
 
-void Game::printBoard() {
-	for (int i = 0; i < NUM_ROWS; i++) {
-		for (int j = 0; j < NUM_COLS; j++) {
-			cout << gameBoard[i][j];
-		}
-		cout << endl;
-	}
+void Game::close() {
 }
 
 Game::Tetromino::Tetromino() {
@@ -457,4 +544,15 @@ void Game::Tetromino::reset() {
 	orientation = UP;
 	mTetromino.clear();
 	mTetromino.shrink_to_fit();
+}
+
+// Print 2D array for debugging
+void Game::printBoard() {
+	for (int i = 0; i < NUM_ROWS; i++) {
+		for (int j = 0; j < NUM_COLS; j++) {
+			cout << gameBoard[i][j];
+		}
+		cout << endl;
+	}
+	cout << endl;
 }

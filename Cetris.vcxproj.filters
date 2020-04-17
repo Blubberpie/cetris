@@ -51,4 +51,20 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="images\background.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="images\tileset_clean.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="images\tileset_default.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="font\gidole_regular.ttf">
+      <Filter>Resource Files</Filter>
+    </Font>
+  </ItemGroup>
 </Project>

@@ -3,6 +3,7 @@
 Renderer::Renderer() {
 	backgroundTexture = new BackgroundTexture();
 	tetrominoTexture = new TetrominoTexture();
+	textTexture = new Texture();
 }
 
 Renderer::~Renderer() {
@@ -13,27 +14,32 @@ bool Renderer::initialize(string title, int width, int height) {
 	bool success = true;
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		success = false;
-		cout << "SDL could not initialize! " << SDL_GetError();
+		cout << "SDL could not initialize! " << SDL_GetError() << endl;
 	}
 	else {
 		sdlWindow = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
 		if (sdlWindow == NULL) {
 			success = false;
-			cout << "SDL could not create window! " << SDL_GetError();
+			cout << "SDL could not create window! " << SDL_GetError() << endl;
 		}
 		else {
 			// Use hardware acceleration
 			sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_ACCELERATED);
 			if (sdlRenderer == NULL) {
 				success = false;
-				cout << "SDL could not create renderer! " << SDL_GetError();
+				cout << "SDL could not create renderer! " << SDL_GetError() << endl;
 			}
 			else {
 				SDL_SetRenderDrawColor(sdlRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 				int imgFlags = IMG_INIT_PNG;
 				if (!(IMG_Init(imgFlags) & imgFlags)) {
 					success = false;
-					cout << "SDL_image could not initialize! " << IMG_GetError();
+					cout << "SDL_image could not initialize! " << IMG_GetError() << endl;
+				}
+
+				if (TTF_Init() == -1) {
+					success = false;
+					cout << "SDL_ttf could not initialize! " << TTF_GetError() << endl;
 				}
 			}
 		}
@@ -45,11 +51,11 @@ bool Renderer::loadMedia() {
 	bool success = true;
 	if (!backgroundTexture->loadFromFile(sdlRenderer, "images/background.png")) {
 		success = false;
-		cout << "Couldn't load background texture!";
+		cout << "Couldn't load background texture!\n";
 	}
 	if (!tetrominoTexture->loadFromFile(sdlRenderer, "images/tileset_clean.png")) {
 		success = false;
-		cout << "Couldn't load tetrominos texture!";
+		cout << "Couldn't load tetrominos texture!\n";
 	}
 	else {
 		tetrominoTexture->setBlendMode(SDL_BLENDMODE_BLEND);
@@ -57,7 +63,10 @@ bool Renderer::loadMedia() {
 			setTetrominoSpriteClip(i, TILE_SPRITE_SIZE * i, 0);
 		}
 	}
-
+	font = TTF_OpenFont("font/gidole_regular.ttf", FONT_SIZE);
+	if (font == NULL) {
+		cout << "Failed to load font! " << TTF_GetError() << endl;
+	}
 	return success;
 }
 
@@ -88,7 +97,7 @@ void Renderer::renderTetromino(vector<vector<int>>& tetromino, int x, int y) {
 		for (size_t row = 0; row < tetromino.size(); row++) {
 			for (size_t col = 0; col < tetromino[0].size(); col++) {
 				int currentTile = tetromino[row][col];
-				if (currentTile != EMPTY_TILE) {
+				if (currentTile != EMPTY_TILE && ((row * TILE_RENDER_SIZE) + y) >= BOARD_START_Y) {
 					tetrominoTexture->render(sdlRenderer, (col * TILE_RENDER_SIZE) + x, (row * TILE_RENDER_SIZE) + y, &tetrominoSpriteClips[currentTile]);
 				}
 			}
@@ -118,6 +127,15 @@ void Renderer::renderNextBox(queue<int> tetrominoNext) {
 	}
 }
 
+void Renderer::renderText(string text, int x, int y, SDL_Color textColor, bool centerX, bool centerY) {
+	int newX = x;
+	int newY = y;
+	textTexture->loadFromRenderedText(sdlRenderer, font, text, textColor);
+	if (centerX) newX = (SCREEN_WIDTH / 2) - (textTexture->getWidth() / 2);
+	if (centerY) newY = (SCREEN_HEIGHT / 2) - (textTexture->getHeight() / 2);
+	textTexture->render(sdlRenderer, newX, newY, NULL);
+}
+
 void Renderer::update(int board[][NUM_COLS]) {
 	int startY = BOARD_START_Y - ((NUM_ROWS - NUM_VISIBLE_ROWS) * TILE_RENDER_SIZE);
 	for (int row = NUM_ROWS - NUM_VISIBLE_ROWS; row < NUM_ROWS; row++) {
@@ -135,11 +153,15 @@ void Renderer::present() {
 void Renderer::close() {
 	delete(backgroundTexture);
 	delete(tetrominoTexture);
+	delete(textTexture);
+	TTF_CloseFont(font);
+	font = NULL;
 	SDL_DestroyRenderer(sdlRenderer);
 	SDL_DestroyWindow(sdlWindow);	
 	sdlRenderer = NULL;
 	sdlWindow = NULL;
 
+	TTF_Quit();
 	IMG_Quit();
 	SDL_Quit();
 }
