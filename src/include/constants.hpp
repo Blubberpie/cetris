@@ -12,6 +12,7 @@ namespace constants {
 	inline constexpr int SCREEN_WIDTH = 1280;
 	inline constexpr int SCREEN_HEIGHT = SCREEN_WIDTH * SCREEN_RATIO_HEIGHT / SCREEN_RATIO_WIDTH;
 	inline constexpr int FONT_SIZE = 36;
+	inline constexpr int SMALL_FONT_SIZE = 24;
 
 	// Playfield 
 
@@ -43,4 +44,6 @@ namespace constants {
 	inline constexpr unsigned int DELAYED_AUTO_SHIFT = 133; // How long a key should be held before repetition is triggered
 	inline constexpr unsigned int AUTO_REPEAT_RATE = 17; // How fast a block moves left/right
 	inline constexpr unsigned int LOCK_DELAY = 500;
+
+	inline constexpr int WRAP_LENGTH = HOLD_START_X - 32;
 }

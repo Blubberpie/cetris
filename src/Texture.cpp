@@ -32,7 +32,7 @@ bool Texture::loadFromFile(SDL_Renderer* renderer, string path) {
 
 bool Texture::loadFromRenderedText(SDL_Renderer* renderer, TTF_Font* font, string text, SDL_Color color){
 	free();
-	SDL_Surface* textSurface = TTF_RenderText_Blended(font, text.c_str(), color);
+	SDL_Surface* textSurface = TTF_RenderText_Blended_Wrapped(font, text.c_str(), color, WRAP_LENGTH);
 	if (textSurface == NULL) {
 		cout << "Couldn't render text surface! " << TTF_GetError();
 	}

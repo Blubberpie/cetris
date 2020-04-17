@@ -17,6 +17,7 @@ private:
 	SDL_Renderer* sdlRenderer = NULL;
 
 	TTF_Font* font;
+	TTF_Font* smallFont;
 	Texture* backgroundTexture;
 	Texture* tetrominoTexture;
 	Texture* textTexture;
@@ -37,8 +38,7 @@ public:
 	void renderGhost(vector<vector<int>>& tetromino, int row, int col);
 	void renderHoldBox(int holdType);
 	void renderNextBox(queue<int> tetrominoNext);
-	void renderText(string text, int x, int y, SDL_Color textColor, bool centerX = false, bool centerY = false);
-	void openFont(int fontSize);
+	void renderText(string text, int x, int y, SDL_Color textColor, bool centerX = false, bool centerY = false, bool isSmall = false);
 	void update(int board[][NUM_COLS]);
 	void present();
 	void close();

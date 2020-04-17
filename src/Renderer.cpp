@@ -64,7 +64,8 @@ bool Renderer::loadMedia() {
 		}
 	}
 	font = TTF_OpenFont("font/gidole_regular.ttf", FONT_SIZE);
-	if (font == NULL) {
+	smallFont = TTF_OpenFont("font/gidole_regular.ttf", SMALL_FONT_SIZE);
+	if (font == NULL || smallFont == NULL) {
 		cout << "Failed to load font! " << TTF_GetError() << endl;
 	}
 	return success;
@@ -127,10 +128,15 @@ void Renderer::renderNextBox(queue<int> tetrominoNext) {
 	}
 }
 
-void Renderer::renderText(string text, int x, int y, SDL_Color textColor, bool centerX, bool centerY) {
+void Renderer::renderText(string text, int x, int y, SDL_Color textColor, bool centerX, bool centerY, bool isSmall) {
 	int newX = x;
 	int newY = y;
-	textTexture->loadFromRenderedText(sdlRenderer, font, text, textColor);
+	if (isSmall) {
+		textTexture->loadFromRenderedText(sdlRenderer, smallFont, text, textColor);
+	}
+	else {
+		textTexture->loadFromRenderedText(sdlRenderer, font, text, textColor);
+	}
 	if (centerX) newX = (SCREEN_WIDTH / 2) - (textTexture->getWidth() / 2);
 	if (centerY) newY = (SCREEN_HEIGHT / 2) - (textTexture->getHeight() / 2);
 	textTexture->render(sdlRenderer, newX, newY, NULL);
