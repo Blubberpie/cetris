@@ -12,7 +12,9 @@ You'll also notice that the control scheme doesn't use the arrow keys for moveme
 - Lock delay (infinite)
 - Super Rotation System (see https://tetris.wiki/Super_Rotation_System)
 - Wall kicks (T-Spin as much as you want)
-- Ghost tetromino
+- BPS's Random Generator (see https://tetris.wiki/Random_Generator)
+- Ghost tetrominos
+- Texture-based rendering
 
 ## Features NOT Implemented
 - Music
@@ -21,5 +23,14 @@ You'll also notice that the control scheme doesn't use the arrow keys for moveme
 - Garbage
 - Levels
 - Everything else
+
+## Controls
+- Left: A
+- Down: S
+- Right: D
+- Hard Drop: W
+- Hold: Q
+- Rotate Left: Down Arrow
+- Rotate Right: Right Arrow
 
 Happy misdropping! :)
