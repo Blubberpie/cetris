@@ -76,6 +76,7 @@ void Game::runCetris() {
 				case SDLK_ESCAPE:
 					gameOver = true;
 					currentMenu = MAIN_MENU;
+					resetGame();
 					break;
 				case SDLK_w:
 					hardDrop();
