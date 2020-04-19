@@ -24,7 +24,7 @@ private:
 	const Uint8* keyboardStates;
 	int currentMenu;
 	int currentLevel = 1;
-	int currentScore = 0;
+	long currentScore = 0;
 
 	queue<int> tetrominoGenerated;
 	queue<int> tetrominoNext;
