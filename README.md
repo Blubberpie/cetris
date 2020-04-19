@@ -15,10 +15,10 @@ You'll also notice that the control scheme doesn't use the arrow keys for moveme
 - BPS's Random Generator (see https://tetris.wiki/Random_Generator)
 - Ghost tetrominos
 - Texture-based rendering
+- A basic scoring system (no combos or T-Spin detection)
 
 ## Features NOT Implemented
 - Music
-- Scoring system
 - T-Spin detection (T-Spins are **very** doable, but there's no reward)
 - Garbage
 - Levels
