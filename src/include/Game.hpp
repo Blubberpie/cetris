@@ -23,6 +23,8 @@ private:
 	SDL_Event event;
 	const Uint8* keyboardStates;
 	int currentMenu;
+	int currentLevel = 1;
+	int currentScore = 0;
 
 	queue<int> tetrominoGenerated;
 	queue<int> tetrominoNext;
@@ -92,7 +94,7 @@ private:
 	void spawn();
 	void writeToBoard(vector<vector<int>> &tetromino, bool clear = false);
 	void tick();
-	void move(int direction);
+	bool move(int direction);
 	void handleKeyPress(KeyboardKey& key);
 	int calculateDrop();
 	void hardDrop();
@@ -109,6 +111,7 @@ private:
 	void resetDirections();
 	void lockTetromino();
 	void resetGame();
+	void calculateLineClearScore(int linesCleared);
 
 public:
 	Game();

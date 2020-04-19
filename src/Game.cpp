@@ -1,6 +1,7 @@
 #include "include/Game.hpp"
 
 Game::Game() {
+	currentMenu = MAIN_MENU;
 	downKey.direction = DOWN;
 	downKey.delay = DROP_DELAY;
 	downKey.repeatRate = DROP_REPEAT_RATE;
@@ -65,6 +66,7 @@ void Game::runMenu() {
 
 // The main game
 void Game::runCetris() {
+	currentScore = 0;
 	while (!gameOver && !quit) {
 		// Note: poll all events before checking key states
 		while (SDL_PollEvent(&event) != 0) {
@@ -226,12 +228,14 @@ void Game::tick() {
 	}
 }
 
-void Game::move(int direction) {
+bool Game::move(int direction) {
+	bool moveSuccess = false;
 	writeToBoard(currentTetromino.mTetromino, true);
 	switch (direction) {
 	case DOWN:
 		if (!willCollide(currentTetromino.mTetromino, currentTetromino.row + 1, currentTetromino.col)) {
 			currentTetromino.row++;
+			moveSuccess = true;
 		}
 		else {
 			if (!dropped) {
@@ -253,6 +257,7 @@ void Game::move(int direction) {
 			if (dropped) {
 				lastLockDelay = SDL_GetTicks();
 			}
+			moveSuccess = true;
 		}
 		break;
 	case RIGHT:
@@ -262,16 +267,19 @@ void Game::move(int direction) {
 			if (dropped) {
 				lastLockDelay = SDL_GetTicks();
 			}
+			moveSuccess = true;
 		}
 		break;
 	}
 	currentTetromino.ghostRow = calculateDrop();
 	writeToBoard(currentTetromino.mTetromino);
+	return moveSuccess;
 }
 
 void Game::handleKeyPress(KeyboardKey& key) {
+	bool moveSuccess = false;
 	if (!key.alreadyPressed) { // first time pressing
-		move(key.direction);
+		moveSuccess = move(key.direction);
 		key.alreadyPressed = true;
 		key.lastDelayTime = SDL_GetTicks();
 	}
@@ -279,11 +287,12 @@ void Game::handleKeyPress(KeyboardKey& key) {
 		Uint32 currentTime = SDL_GetTicks();
 		if (currentTime - key.lastDelayTime >= key.delay) {
 			if (currentTime - key.lastRepeatTime >= key.repeatRate) {
-				move(key.direction);
+				moveSuccess = move(key.direction);
 				key.lastRepeatTime = currentTime;
 			}
 		}
 	}
+	if (moveSuccess && key.direction == DOWN) currentScore++;
 }
 
 int Game::calculateDrop() {
@@ -296,10 +305,12 @@ int Game::calculateDrop() {
 }
 
 void Game::hardDrop() {
+	int rowsDropped = currentTetromino.ghostRow - currentTetromino.row;
 	writeToBoard(currentTetromino.mTetromino, true);
 	currentTetromino.row = currentTetromino.ghostRow;
 	if (!(currentTetromino.row < 0)) {
 		lockTetromino();
+		currentScore += rowsDropped * 2;
 		dropped = false;
 	}
 	else {
@@ -466,8 +477,27 @@ void Game::clearLines() { // TODO find that one glitch
 			for (int col = 0; col < NUM_COLS; col++) {
 				gameBoard[row][col] = 0;
 			}
+			totalLinesCleared++;
 			cascade(row);
 		}
+	}
+	calculateLineClearScore(totalLinesCleared);
+}
+
+void Game::calculateLineClearScore(int linesCleared) {
+	switch (linesCleared) {
+	case 1:
+		currentScore += 100 * currentLevel;
+		break;
+	case 2:
+		currentScore += 300 * currentLevel;
+		break;
+	case 3:
+		currentScore += 500 * currentLevel;
+		break;
+	case 4:
+		currentScore += 800 * currentLevel;
+		break;
 	}
 }
 
@@ -511,6 +541,7 @@ void Game::updateMainGameScreen() {
 	renderer.renderBackground();
 	SDL_Color textColor = { 213, 213, 213 };
 	renderer.renderText("Left: A | Down: S | Right: D | Hard Drop: W | Hold: Q | Rotate Right: Right Arrow | Rotate Left: Down Arrow | Back to Main Menu: Esc", 16, 16, textColor, false, false, true);
+	renderer.renderText("SCORE: " + to_string(currentScore), 16, BOARD_START_Y + (TILE_RENDER_SIZE * NUM_ROWS) + 16, textColor, true, false, false);
 	renderer.renderText("Hold", HOLD_START_X, HOLD_START_Y - FONT_SIZE - 16, textColor);
 	renderer.renderText("Next", QUEUE_START_X, QUEUE_START_Y - FONT_SIZE - 16, textColor);
 	renderer.update(gameBoard);
@@ -529,6 +560,8 @@ void Game::updateMainMenuScreen() {
 	if (gameOver) {
 		textColor = { 220, 16, 72 };
 		renderer.renderText("GAME OVER", 0, 22, textColor, true);
+		textColor = { 213, 213, 213 };
+		renderer.renderText("Final score: " + to_string(currentScore), 0, 22 + FONT_SIZE + 10, textColor, true);
 	}
 	textColor = { 50, 200, 220 };
 	renderer.renderText("Cetris", 0, (SCREEN_HEIGHT / 2) - (FONT_SIZE * 2), textColor, true);

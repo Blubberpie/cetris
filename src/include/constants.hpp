@@ -9,7 +9,7 @@ namespace constants {
 
 	inline constexpr int SCREEN_RATIO_WIDTH = 16;
 	inline constexpr int SCREEN_RATIO_HEIGHT = 9;
-	inline constexpr int SCREEN_WIDTH = 1920;
+	inline constexpr int SCREEN_WIDTH = 1280;
 	inline constexpr int SCREEN_HEIGHT = SCREEN_WIDTH * SCREEN_RATIO_HEIGHT / SCREEN_RATIO_WIDTH;
 	inline constexpr int FONT_SIZE = (SCREEN_WIDTH * 9) / 320; // Relative to screen width
 	inline constexpr int SMALL_FONT_SIZE = 24;
