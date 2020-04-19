@@ -140,6 +140,11 @@ void Game::resetGame() {
 	lastTick = 0;
 	lastLockDelay = 0;
 
+	queue<int> empty;
+	queue<int> empty2;
+	swap(tetrominoGenerated, empty);
+	swap(tetrominoNext, empty2);
+
 	currentTetromino.reset();
 
 	checkAndGenerateTetrominoSet();
