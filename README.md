@@ -1,6 +1,6 @@
 # Cetris
 
-A (modern) Tetris clone written in C++ and SDL2.0
+A (modern) Tetris clone written in C++ and SDL2.0 ([Download Here](https://github.com/Blubberpie/cetris/releases/latest))
 
 ## NOTE
 **This is by no means an optimized game**, and since it's my first C++ program, I probably have unintentionally broken several conventions and best practices. This was purely meant as a fun coding challenge for me, and I'm just sharing it.
